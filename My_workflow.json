@@ -1,0 +1,216 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "da028975-594f-4808-b638-614fdf0262f5",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1EjYG9xJopjKWfB6rIIi6R__HPLdNakO3PYulFfpAJaQ/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1EjYG9xJopjKWfB6rIIi6R__HPLdNakO3PYulFfpAJaQ/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        220,
+        0
+      ],
+      "id": "2bf22a3f-c67c-43cf-8311-32d7c2d8d017",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "n0fhiI8SAghFhIaL",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Subject: Friendly Reminder: Payment Status for Invoice {{$json[\"Invoice No\"]}}\n\nDear Customer,\n\nThis is a reminder from our finance desk regarding your invoice **{{$json[\"Invoice No\"]}}**, due on **{{$json[\"Due Date\"]}}**.\n\n{{ (new Date($json[\"Due Date\"]) < new Date()) ? \"Our records show that this invoice is **past due**, and we have not yet received the payment. Kindly process the payment at your earliest convenience. If already paid, please ignore this message or reply with the payment confirmation.\" : \"We’re reaching out in advance to remind you that the due date for your invoice **\" + $json[\"Invoice No\"] + \"** is **approaching soon**. We appreciate timely payment to ensure smooth processing.\" }}\n\nThank you for your cooperation.\n\nBest regards,  \nAgent – Accounts Receivable Team  \nReplace your current \"text\" value with the above, and the syntax error should be resolved.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ],
+      "id": "5b4115be-018c-4b30-899b-239015640b07",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        460,
+        220
+      ],
+      "id": "c0a24e2b-f9dd-4453-8a44-6e4a20961ae8",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "V6i02brTqCLilXkh",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Google Sheets').item.json['Email'] }}",
+        "subject": "remainder",
+        "emailType": "text",
+        "message": "=Dear Customer,  This is a gentle reminder that your payment for Invoice due on  is still pending.  Please confirm the payment status. If you've already paid, kindly ignore this message.  Thank you,   Finance Manager  ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        980,
+        0
+      ],
+      "id": "96df56cb-ea05-4712-a61f-281a3196d208",
+      "name": "Gmail",
+      "webhookId": "38aebef5-3385-4fcf-add0-937d2c0e883d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "wWZIIQK8w8j22mro",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6d6e80fd-d290-41f5-9e4d-7b5852ba99bf",
+              "leftValue": "={{ $json['Paid Status'] }}",
+              "rightValue": "Yes",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        440,
+        0
+      ],
+      "id": "bd80de27-19d8-4f9c-b7e9-a580c1a6de11",
+      "name": "If"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "4a4aa5ad-8277-4997-ab26-90f6543d96dc",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2bd91906ce2218b337a6747817c8381d6ce5e4a2463b69cca0371a1fad0f91ee"
+  },
+  "id": "GQVmpcEJkIuOnHBW",
+  "tags": []
+}
