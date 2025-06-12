@@ -1,0 +1,1 @@
+https://app.relevanceai.com/agents/f1db6c/a273410a24cb-4085-9d0b-cfe58178124e/0cc3c70a-1476-41b3-837c-c7943fcb6d7d/embed-chat?hide_tool_steps=false&hide_file_uploads=false&hide_conversation_list=false&bubble_style=agent&primary_color=%23685FFF&bubble_icon=pd%2Fchat&input_placeholder_text=Type+your+message...&hide_logo=false&hide_description=false
