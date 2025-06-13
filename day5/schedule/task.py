@@ -16,6 +16,7 @@ llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", google_api_key=GOOGLE_API
 def schedule_tasks(task_list: str) -> str:
     prompt = f"""
 You are a helpful and health-conscious daily planner assistant.
+Output Structure - Using the pandas the output should be like in a dataframe format
 
 A user has the following tasks today:
 {task_list}
